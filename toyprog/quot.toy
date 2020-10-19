@@ -1,0 +1,22 @@
+    get
+    store m
+    get
+    store n
+    ifzero err
+top load m
+    sub n
+    ifpos mid
+    load q
+    print 
+    load m
+    print 
+    stop
+mid store m
+    load 1
+    add q
+    store q
+    goto top
+err stop
+m   0
+n   0
+q   0

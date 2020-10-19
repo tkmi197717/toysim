@@ -1,0 +1,31 @@
+    get
+    store m
+    get
+    store n
+lb0 ifzero bot
+lb1 load m
+    store c
+lb2 load s
+    add p
+    store s
+    load c
+    sub 1
+    store c
+    ifzero lb3
+    goto lb2
+lb3 load s
+    store p
+    load 0
+    store s
+    load n
+    sub 1
+    store n
+    goto lb0
+bot load p
+    print 
+    stop
+s   0
+p   1
+m   0
+n   0
+c   0

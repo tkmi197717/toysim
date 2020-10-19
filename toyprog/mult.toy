@@ -1,0 +1,18 @@
+    get 
+    store m
+    get 
+    store n
+top load p
+    add m
+    store p
+    load n
+    sub 1
+    store n
+    ifzero bot
+    goto top
+bot load p
+    print 
+    stop
+m   0
+n   0
+p   0

@@ -75,26 +75,26 @@ type Pc = Int
 type Inputs = [Int]
 type Outputs = [Int]
 
-program_ :: ToyState -> Program 
-program_ (p, _, _, _, _, _) = p
+-- program_ :: ToyState -> Program 
+-- program_ (p, _, _, _, _, _) = p
 
-symTable_ :: ToyState -> SymTable
-symTable_ (_, s, _, _, _, _) = s
+-- symTable_ :: ToyState -> SymTable
+-- symTable_ (_, s, _, _, _, _) = s
 
-acc_ :: ToyState -> Acc
-acc_ (_, _, a, _, _, _) = a
+-- acc_ :: ToyState -> Acc
+-- acc_ (_, _, a, _, _, _) = a
 
-pc_ :: ToyState -> Pc
-pc_ (_, _, _, p, _, _) = p
+-- pc_ :: ToyState -> Pc
+-- pc_ (_, _, _, p, _, _) = p
 
-inputs_ :: ToyState -> Inputs
-inputs_ (_, _, _, _, i, _) = i
+-- inputs_ :: ToyState -> Inputs
+-- inputs_ (_, _, _, _, i, _) = i
 
 outputs_ :: ToyState -> Outputs
 outputs_ (_, _, _, _, _, o) = o
 
 run :: (Program, SymTable) -> Inputs -> Outputs
-run (prog, tab) ins = outputs_ (last (exec (prog, tab, 0, 0, ins, [])))
+run (prog, tab) ins = reverse (outputs_ (last (exec (prog, tab, 0, 0, ins, []))))
 
 exec :: ToyState -> [ToyState]
 exec st = st : rests
@@ -119,7 +119,7 @@ step (prog, tab, acc, pc, ins, outs)
             SUB -> (prog, tab, acc - getval prog tab arg, succ pc, ins, outs)
             GOTO -> (prog, tab, acc, lookingup arg tab, ins, outs)
             IFZERO -> (prog, tab, acc, if acc == 0 then lookingup arg tab else succ pc, ins, outs)
-            IFPOS -> (prog, tab, acc, if acc > 0 then lookingup arg tab else succ pc, ins, outs)
+            IFPOS -> (prog, tab, acc, if acc >= 0 then lookingup arg tab else succ pc, ins, outs)
 
 getval :: Program -> SymTable -> Arg -> Int
 getval prog tab arg = case arg of 
@@ -139,4 +139,4 @@ lookingup a tab = case a of
 update :: Program -> SymTable -> Acc -> Arg -> Program
 update prog tab acc arg = case lookingup arg tab of
     i -> case splitAt i prog of 
-        (ps, _:qs) -> ps ++ (i, (NOP, Number acc)) : qs 
+        (ps, _:qs) -> ps ++ (i, (NOP, Number acc)) : qs

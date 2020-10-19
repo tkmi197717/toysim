@@ -28,7 +28,7 @@ library:
   source-dirs: src
 
 executables:
-  toysim-exe:
+  toysim:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
