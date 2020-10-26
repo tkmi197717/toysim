@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9ed95b4c93cf7ffa69c076dca2de1730141cb91c0141097c00e07ab6ee46a608
+-- hash: 6550057dce6c288b6d9db3880fee18a42e076dbfe641efc3da3ac66035c87574
 
 name:           toysim
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Machine
       Toysim
   other-modules:
       Paths_toysim

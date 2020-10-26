@@ -3,6 +3,8 @@ module Toysim where
 import Data.Array 
 import Data.Char
 import Data.List
+import Data.Maybe
+import Debug.Trace
 
 data Op
     = NOP
@@ -20,7 +22,7 @@ data Op
 
 data Arg
     = None
-    | Number Int
+    | Number Integer
     | Label String
     deriving (Eq,Show)
 
@@ -31,15 +33,15 @@ readArg a = if all isDigit a
 
 type Instrustion = (Op, Arg)
 
-type Program = [(Int,Instrustion)]
+type Program = [(Integer,Instrustion)]
 
-type SymTable = [(String, Int)]
+type SymTable = [(String, Integer)]
 
 loadProg :: String -> (Program, SymTable)
 loadProg s = case mapAccumL psi (0, []) (lines s) of
     ((n, tab), prog) -> (prog, tab)
 
-psi :: (Int, SymTable) -> String -> ((Int, SymTable), (Int, Instrustion))
+psi :: (Integer, SymTable) -> String -> ((Integer, SymTable), (Integer, Instrustion))
 psi (i,tab) (c:cs) = if isSpace c 
     then case words cs of
         [o] -> ((succ i, tab), (i, (read (upCase o), None)))
@@ -66,14 +68,14 @@ sample = unlines
     ,"SUM 0"
     ]
 
-sampleInput :: [Int]
+sampleInput :: [Integer]
 sampleInput = [3,1,4,1,5,9,0]
 
-type ToyState = (Program, SymTable, Acc, Pc, Inputs, Outputs)
-type Acc = Int
-type Pc = Int
-type Inputs = [Int]
-type Outputs = [Int]
+type ToyState = (Program, SymTable, Acc, Pc, Inputs, Output)
+type Acc = Integer
+type Pc = Integer
+type Inputs = [Integer]
+type Output = Maybe Integer
 
 -- program_ :: ToyState -> Program 
 -- program_ (p, _, _, _, _, _) = p
@@ -90,11 +92,11 @@ type Outputs = [Int]
 -- inputs_ :: ToyState -> Inputs
 -- inputs_ (_, _, _, _, i, _) = i
 
-outputs_ :: ToyState -> Outputs
+outputs_ :: ToyState -> Output
 outputs_ (_, _, _, _, _, o) = o
 
-run :: (Program, SymTable) -> Inputs -> Outputs
-run (prog, tab) ins = reverse (outputs_ (last (exec (prog, tab, 0, 0, ins, []))))
+run :: (Program, SymTable) -> Inputs -> [Integer]
+run (prog, tab) ins = mapMaybe outputs_ (exec (prog, tab, 0, 0, ins, Nothing ))
 
 exec :: ToyState -> [ToyState]
 exec st = st : rests
@@ -107,21 +109,42 @@ isFinal (_, _, _, -1, _, _) = True
 isFinal _ = False
 
 step :: ToyState -> ToyState
-step (prog, tab, acc, pc, ins, outs)
-    = case prog !! pc of
-        (_, (op, arg)) -> case op of 
-            GET -> (prog, tab, head ins, succ pc, tail ins, outs)
-            PRINT -> (prog, tab, acc, succ pc, ins, acc:outs)
-            STOP -> (prog, tab, acc, -1, ins, outs)
-            LOAD -> (prog, tab, getval prog tab arg, succ pc, ins, outs)
-            STORE -> (update prog tab acc arg, tab, acc, succ pc, ins, outs)
-            ADD -> (prog, tab, acc + getval prog tab arg, succ pc, ins, outs)
-            SUB -> (prog, tab, acc - getval prog tab arg, succ pc, ins, outs)
-            GOTO -> (prog, tab, acc, lookingup arg tab, ins, outs)
-            IFZERO -> (prog, tab, acc, if acc == 0 then lookingup arg tab else succ pc, ins, outs)
-            IFPOS -> (prog, tab, acc, if acc >= 0 then lookingup arg tab else succ pc, ins, outs)
+step st = execute (decode (fetch st)) st
+-- step (prog, tab, acc, pc, ins, _)
+--     = case genericIndex prog pc of
+--         (_, (op, arg)) -> case op of 
+--             GET -> trace "Input number" $ case ins of { i : is -> (prog, tab, i, succ pc, is, Nothing) }
+--             PRINT -> (prog, tab, acc, succ pc, ins, Just acc)
+--             STOP -> trace "stop" (prog, tab, acc, -1, ins, Nothing)
+--             LOAD -> (prog, tab, getval prog tab arg, succ pc, ins, Nothing)
+--             STORE -> (update prog tab acc arg, tab, acc, succ pc, ins, Nothing)
+--             ADD -> (prog, tab, acc + getval prog tab arg, succ pc, ins, Nothing)
+--             SUB -> (prog, tab, acc - getval prog tab arg, succ pc, ins, Nothing)
+--             GOTO -> (prog, tab, acc, lookingup arg tab, ins, Nothing)
+--             IFZERO -> (prog, tab, acc, if acc == 0 then lookingup arg tab else succ pc, ins, Nothing)
+--             IFPOS -> (prog, tab, acc, if acc >= 0 then lookingup arg tab else succ pc, ins, Nothing)
 
-getval :: Program -> SymTable -> Arg -> Int
+fetch :: ToyState -> Instrustion 
+fetch (prog, _, _, pc, _, _) = case genericIndex prog pc of
+    (_, (op, arg)) -> (op, arg)
+
+decode :: Instrustion -> (ToyState -> ToyState)
+decode (op, arg) (prog, tab, acc, pc, ins, _) = case op of
+    GET -> trace "Input number" $ case ins of { i : is -> (prog, tab, i, succ pc, is, Nothing) }
+    PRINT -> (prog, tab, acc, succ pc, ins, Just acc)
+    STOP -> trace "stop" (prog, tab, acc, -1, ins, Nothing)
+    LOAD -> (prog, tab, getval prog tab arg, succ pc, ins, Nothing)
+    STORE -> (update prog tab acc arg, tab, acc, succ pc, ins, Nothing)
+    ADD -> (prog, tab, acc + getval prog tab arg, succ pc, ins, Nothing)
+    SUB -> (prog, tab, acc - getval prog tab arg, succ pc, ins, Nothing)
+    GOTO -> (prog, tab, acc, lookingup arg tab, ins, Nothing)
+    IFZERO -> (prog, tab, acc, if acc == 0 then lookingup arg tab else succ pc, ins, Nothing)
+    IFPOS -> (prog, tab, acc, if acc >= 0 then lookingup arg tab else succ pc, ins, Nothing)
+
+execute :: (ToyState -> ToyState) -> (ToyState -> ToyState)
+execute = id 
+
+getval :: Program -> SymTable -> Arg -> Integer
 getval prog tab arg = case arg of 
     Number n -> n
     Label lab -> case lookup lab tab of 
@@ -130,7 +153,7 @@ getval prog tab arg = case arg of
             Nothing -> error ("out of program range")
             Just (NOP, Number k) -> k
 
-lookingup :: Arg -> SymTable -> Int
+lookingup :: Arg -> SymTable -> Integer
 lookingup a tab = case a of 
     Label lab -> case lookup lab tab of 
         Nothing -> error ("unknown " ++ lab)
@@ -138,5 +161,5 @@ lookingup a tab = case a of
 
 update :: Program -> SymTable -> Acc -> Arg -> Program
 update prog tab acc arg = case lookingup arg tab of
-    i -> case splitAt i prog of 
+    i -> case genericSplitAt i prog of 
         (ps, _:qs) -> ps ++ (i, (NOP, Number acc)) : qs

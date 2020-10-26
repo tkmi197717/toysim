@@ -10,5 +10,5 @@ main = do
     ; drive (run (loadProg str))
     }
 
-drive :: (Inputs -> Outputs) -> IO ()
+drive :: (Inputs -> [Integer]) -> IO ()
 drive r = interact (unlines . map show . r . map read . lines )
