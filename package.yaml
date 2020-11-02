@@ -28,15 +28,21 @@ library:
   source-dirs: src
 
 executables:
-  toysim:
+  # toysim:
+  #   main:                Main.hs
+  #   source-dirs:         app
+  #   ghc-options:
+  #   - -threaded
+  #   - -rtsopts
+  #   - -with-rtsopts=-N
+  #   dependencies:
+  #   - toysim
+  
+  assembler:
     main:                Main.hs
     source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
-    - toysim
+    - toysim  
 
 tests:
   toysim-test:

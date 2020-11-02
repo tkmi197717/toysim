@@ -22,7 +22,7 @@ data Op
 
 data Arg
     = None
-    | Number Integer
+    | Number Int
     | Label String
     deriving (Eq,Show)
 
@@ -33,15 +33,15 @@ readArg a = if all isDigit a
 
 type Instrustion = (Op, Arg)
 
-type Program = [(Integer,Instrustion)]
+type Program = [(Int,Instrustion)]
 
-type SymTable = [(String, Integer)]
+type SymTable = [(String, Int)]
 
 loadProg :: String -> (Program, SymTable)
 loadProg s = case mapAccumL psi (0, []) (lines s) of
     ((n, tab), prog) -> (prog, tab)
 
-psi :: (Integer, SymTable) -> String -> ((Integer, SymTable), (Integer, Instrustion))
+psi :: (Int, SymTable) -> String -> ((Int, SymTable), (Int, Instrustion))
 psi (i,tab) (c:cs) = if isSpace c 
     then case words cs of
         [o] -> ((succ i, tab), (i, (read (upCase o), None)))
@@ -68,14 +68,14 @@ sample = unlines
     ,"SUM 0"
     ]
 
-sampleInput :: [Integer]
+sampleInput :: [Int]
 sampleInput = [3,1,4,1,5,9,0]
 
 type ToyState = (Program, SymTable, Acc, Pc, Inputs, Output)
-type Acc = Integer
-type Pc = Integer
-type Inputs = [Integer]
-type Output = Maybe Integer
+type Acc = Int
+type Pc = Int
+type Inputs = [Int]
+type Output = Maybe Int
 
 -- program_ :: ToyState -> Program 
 -- program_ (p, _, _, _, _, _) = p
@@ -95,7 +95,7 @@ type Output = Maybe Integer
 outputs_ :: ToyState -> Output
 outputs_ (_, _, _, _, _, o) = o
 
-run :: (Program, SymTable) -> Inputs -> [Integer]
+run :: (Program, SymTable) -> Inputs -> [Int]
 run (prog, tab) ins = mapMaybe outputs_ (exec (prog, tab, 0, 0, ins, Nothing ))
 
 exec :: ToyState -> [ToyState]
@@ -144,16 +144,16 @@ decode (op, arg) (prog, tab, acc, pc, ins, _) = case op of
 execute :: (ToyState -> ToyState) -> (ToyState -> ToyState)
 execute = id 
 
-getval :: Program -> SymTable -> Arg -> Integer
+getval :: Program -> SymTable -> Arg -> Int
 getval prog tab arg = case arg of 
     Number n -> n
     Label lab -> case lookup lab tab of 
         Nothing -> error ("unknown " ++ lab)
         Just m -> case lookup m prog of 
-            Nothing -> error ("out of program range")
+            Nothing -> error ("out of program range" ++ show m ++ ": " ++ show prog)
             Just (NOP, Number k) -> k
 
-lookingup :: Arg -> SymTable -> Integer
+lookingup :: Arg -> SymTable -> Int
 lookingup a tab = case a of 
     Label lab -> case lookup lab tab of 
         Nothing -> error ("unknown " ++ lab)
