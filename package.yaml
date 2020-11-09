@@ -38,7 +38,7 @@ executables:
   #   dependencies:
   #   - toysim
   
-  assembler:
+  toymachine:
     main:                Main.hs
     source-dirs:         app
     dependencies:

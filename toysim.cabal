@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 63a5176a56f5bae9e6236342adc4dec497382065cff699a511ddbe91d293dc6d
+-- hash: b7d6c921dcf9906a13fb30178042650d216fc4b1c0d58a062b9d285363786bc7
 
 name:           toysim
 version:        0.1.0.0
@@ -41,7 +41,7 @@ library
     , containers
   default-language: Haskell2010
 
-executable assembler
+executable toymachine
   main-is: Main.hs
   other-modules:
       Main0
