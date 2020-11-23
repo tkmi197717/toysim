@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b7d6c921dcf9906a13fb30178042650d216fc4b1c0d58a062b9d285363786bc7
+-- hash: 954edce72ccca60a20a9fd7e6d1b2786aa96278e300f45d3aaa1405a629f6aae
 
 name:           toysim
 version:        0.1.0.0
@@ -45,6 +45,7 @@ executable toymachine
   main-is: Main.hs
   other-modules:
       Main0
+      Main1
       Paths_toysim
   hs-source-dirs:
       app

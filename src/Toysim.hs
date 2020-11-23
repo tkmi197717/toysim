@@ -75,7 +75,7 @@ type ToyState = (Program, SymTable, Acc, Pc, Inputs, Output)
 type Acc = Int
 type Pc = Int
 type Inputs = [Int]
-type Output = Maybe Int
+type Output = Either String (Maybe Int)
 
 -- program_ :: ToyState -> Program 
 -- program_ (p, _, _, _, _, _) = p
@@ -92,17 +92,22 @@ type Output = Maybe Int
 -- inputs_ :: ToyState -> Inputs
 -- inputs_ (_, _, _, _, i, _) = i
 
-outputs_ :: ToyState -> Output
-outputs_ (_, _, _, _, _, o) = o
+output :: ToyState -> Output
+output (_, _, _, _, _, o) = o
 
-run :: (Program, SymTable) -> Inputs -> [Int]
-run (prog, tab) ins = mapMaybe outputs_ (exec (prog, tab, 0, 0, ins, Nothing ))
+run :: (Program, SymTable) -> Inputs -> [Output]
+run (prog, tab) ins = map output (exec (prog, tab, 0, 0, ins, Right Nothing))
 
 exec :: ToyState -> [ToyState]
 exec st = st : rests
     where 
         rests = if isFinal st then [] 
-                else exec (step st)
+                else st' : exec (step st')
+        st' = case st of
+            (prog, tab, acc, pc, i:is, _ ) -> (prog, tab, acc, pc, is, disp st)
+
+disp :: ToyState -> Either String (Maybe Int)
+disp (prog, tab, acc, pc, _, _ ) = undefined
 
 isFinal :: ToyState -> Bool
 isFinal (_, _, _, -1, _, _) = True
@@ -130,16 +135,16 @@ fetch (prog, _, _, pc, _, _) = case genericIndex prog pc of
 
 decode :: Instrustion -> (ToyState -> ToyState)
 decode (op, arg) (prog, tab, acc, pc, ins, _) = case op of
-    GET -> trace "Input number" $ case ins of { i : is -> (prog, tab, i, succ pc, is, Nothing) }
-    PRINT -> (prog, tab, acc, succ pc, ins, Just acc)
-    STOP -> trace "stop" (prog, tab, acc, -1, ins, Nothing)
-    LOAD -> (prog, tab, getval prog tab arg, succ pc, ins, Nothing)
-    STORE -> (update prog tab acc arg, tab, acc, succ pc, ins, Nothing)
-    ADD -> (prog, tab, acc + getval prog tab arg, succ pc, ins, Nothing)
-    SUB -> (prog, tab, acc - getval prog tab arg, succ pc, ins, Nothing)
-    GOTO -> (prog, tab, acc, lookingup arg tab, ins, Nothing)
-    IFZERO -> (prog, tab, acc, if acc == 0 then lookingup arg tab else succ pc, ins, Nothing)
-    IFPOS -> (prog, tab, acc, if acc >= 0 then lookingup arg tab else succ pc, ins, Nothing)
+    GET -> trace "Input number" $ case ins of { i : is -> (prog, tab, i, succ pc, is, Right Nothing) }
+    PRINT -> (prog, tab, acc, succ pc, ins, Right (Just acc))
+    STOP -> trace "stop" (prog, tab, acc, -1, ins, Right Nothing)
+    LOAD -> (prog, tab, getval prog tab arg, succ pc, ins, Right Nothing)
+    STORE -> (update prog tab acc arg, tab, acc, succ pc, ins, Right Nothing)
+    ADD -> (prog, tab, acc + getval prog tab arg, succ pc, ins, Right Nothing)
+    SUB -> (prog, tab, acc - getval prog tab arg, succ pc, ins, Right Nothing)
+    GOTO -> (prog, tab, acc, lookingup arg tab, ins, Right Nothing)
+    IFZERO -> (prog, tab, acc, if acc == 0 then lookingup arg tab else succ pc, ins, Right Nothing)
+    IFPOS -> (prog, tab, acc, if acc >= 0 then lookingup arg tab else succ pc, ins, Right Nothing)
 
 execute :: (ToyState -> ToyState) -> (ToyState -> ToyState)
 execute = id 

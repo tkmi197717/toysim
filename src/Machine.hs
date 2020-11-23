@@ -82,3 +82,4 @@ debug = False
 
 showState :: MState -> String
 showState (mem, ac, pc, _, _) = show mem ++ " acc: " ++ show ac ++ " pc: " ++ show pc
+
