@@ -5,6 +5,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Debug.Trace
+import Text.Printf
 
 data Op
     = NOP
@@ -107,7 +108,18 @@ exec st = st : rests
             (prog, tab, acc, pc, i:is, _ ) -> (prog, tab, acc, pc, is, disp st)
 
 disp :: ToyState -> Either String (Maybe Int)
-disp (prog, tab, acc, pc, _, _ ) = undefined
+disp (prog, tab, acc, pc, _, _ ) = Left $ dispProg pc prog ++ dispAcc acc
+
+dispAcc :: Acc -> String 
+dispAcc acc = printf "acc: %d\n" acc
+
+dispProg :: Pc -> Program -> String 
+dispProg pc prog = unlines $ map (showLine pc) prog 
+
+showLine :: Pc -> (Int, Instrustion) -> String
+showLine pc (i, inst) = if pc == i 
+    then printf "> %06d: %s" i (show inst)
+    else printf "  %06d: %s" i (show inst)
 
 isFinal :: ToyState -> Bool
 isFinal (_, _, _, -1, _, _) = True
