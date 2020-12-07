@@ -38,6 +38,9 @@ type Program = [(Int,Instrustion)]
 
 type SymTable = [(String, Int)]
 
+type DebugInfo = [BreakPoint] 
+type BreakPoint = Int
+
 loadProg :: String -> (Program, SymTable)
 loadProg s = case mapAccumL psi (0, []) (lines s) of
     ((n, tab), prog) -> (prog, tab)
@@ -97,15 +100,27 @@ output :: ToyState -> Output
 output (_, _, _, _, _, o) = o
 
 run :: (Program, SymTable) -> Inputs -> [Output]
-run (prog, tab) ins = map output (exec (prog, tab, 0, 0, ins, Right Nothing))
+run (prog, tab) ins = map output (exec' [5] (prog, tab, 0, 0, ins, Right Nothing))
 
-exec :: ToyState -> [ToyState]
-exec st = st : rests
+-- exec :: ToyState -> [ToyState]
+-- exec st = st : rests
+--     where 
+--         rests = if isFinal st then [] 
+--                 else st' : exec (step st')
+--         st' = case st of
+--             (prog, tab, acc, pc, i:is, _ ) -> (prog, tab, acc, pc, is, disp st)
+
+exec' :: DebugInfo -> ToyState -> [ToyState]
+exec' bs st = st : rests
     where 
         rests = if isFinal st then [] 
-                else st' : exec (step st')
-        st' = case st of
-            (prog, tab, acc, pc, i:is, _ ) -> (prog, tab, acc, pc, is, disp st)
+                else extend st ++ (exec' bs (step st))
+        extend st@(prog, tab, acc, pc, iis, _) 
+            = if elem pc bs 
+                then (prog, tab, acc, pc, iis, disp st) : case iis of 
+                    i:is -> [(prog, tab, acc, pc, is, Right Nothing)]
+                else [] 
+
 
 disp :: ToyState -> Either String (Maybe Int)
 disp (prog, tab, acc, pc, _, _ ) = Left $ dispProg pc prog ++ dispAcc acc

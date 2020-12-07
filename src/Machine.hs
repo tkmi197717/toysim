@@ -15,6 +15,7 @@ type Pc = Int
 type Inputs = [Int]
 type Output = Maybe Int
 
+
 step :: MState -> MState
 step st = execute (decode (fetch st)) st
 
