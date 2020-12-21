@@ -108,8 +108,9 @@ run (prog, tab) ins = trace "set break points: " $
     case ins of
         i:is -> map output (exec' bs (prog, tab, 0, 0, is, Right Nothing))
                 where 
-                    bs = readInts i 
-
+                    bs = case map toUpper i of
+                        i' | "A" `isPrefixOf` i' -> [0 .. length prog]
+                           | otherwise           -> readInts i
 
 readInts :: String -> [Int]
 readInts = read
@@ -130,23 +131,35 @@ exec' bs st = st : rests
         extend st@(prog, tab, acc, pc, iis, _) 
             = if elem pc bs 
                 then (prog, tab, acc, pc, iis, disp st) : case iis of 
-                    i:is -> exec' bs (step (prog, tab, acc, pc, is, Right Nothing))
+                    i:is -> if "C" `isPrefixOf` map toUpper i 
+                        then exec' [] (step (prog, tab, acc, pc, is, Right Nothing)) 
+                        else exec' bs (step (prog, tab, acc, pc, is, Right Nothing))
                 else exec' bs (step st)
 
 
 disp :: ToyState -> Either String (Maybe Int)
-disp (prog, tab, acc, pc, _, _ ) = Left $ dispProg pc prog ++ dispAcc acc
+disp (prog, tab, acc, pc, _, _ ) = Left $ dispProg tab pc prog ++ dispAcc acc
 
 dispAcc :: Acc -> String 
 dispAcc acc = printf "acc: %d\n" acc
 
-dispProg :: Pc -> Program -> String 
-dispProg pc prog = unlines $ map (showLine pc) prog 
+dispProg :: SymTable -> Pc -> Program -> String 
+dispProg tab pc prog = unlines $ map (showLine tab pc) prog 
 
-showLine :: Pc -> (Int, Instrustion) -> String
-showLine pc (i, inst) = if pc == i 
-    then printf "> %06d: %s" i (show inst)
-    else printf "  %06d: %s" i (show inst)
+showLine :: SymTable -> Pc -> (Int, Instrustion) -> String
+showLine tab pc (i, inst) = if pc == i 
+    then printf "> %06d: %s" i (showInst tab inst)
+    else printf "  %06d: %s" i (showInst tab inst)
+
+showInst :: SymTable -> Instrustion -> String
+showInst tab inst = case inst of
+    (NOP, Number n) -> show n  
+    (op, arg) -> show op ++ case arg of
+        None -> ""
+        Number n -> " " ++ show n
+        Label l -> " " ++ l ++ l'
+                    where 
+                        l' = "(" ++ show (lookingup arg tab) ++ ")"  
 
 isFinal :: ToyState -> Bool
 isFinal (_, _, _, -1, _, _) = True
