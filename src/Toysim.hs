@@ -1,7 +1,11 @@
+---
+marp: true
+---
+
 module Toysim where
     
 import Data.Array 
-import Data.Char
+import Data.Char ( isDigit, isSpace, toUpper )
 import Data.List
 import Data.Maybe
 import Debug.Trace
@@ -39,6 +43,7 @@ type Program = [(Int,Instrustion)]
 type SymTable = [(String, Int)]
 
 type DebugInfo = [BreakPoint] 
+
 type BreakPoint = Int
 
 loadProg :: String -> (Program, SymTable)
