@@ -1,6 +1,4 @@
----
-marp: true
----
+
 
 module Toysim where
     
@@ -83,7 +81,8 @@ sampleInput = [3,1,4,1,5,9,0]
 type ToyState = (Program, SymTable, Acc, Pc, Inputs, Output)
 type Acc = Int
 type Pc = Int
-type Inputs = [Int]
+type Inputs = [String]
+-- type Inputs = [Int]
 type Output = Either String (Maybe Int)
 
 -- program_ :: ToyState -> Program 
@@ -105,7 +104,15 @@ output :: ToyState -> Output
 output (_, _, _, _, _, o) = o
 
 run :: (Program, SymTable) -> Inputs -> [Output]
-run (prog, tab) ins = map output (exec' [5] (prog, tab, 0, 0, ins, Right Nothing))
+run (prog, tab) ins = trace "set break points: " $
+    case ins of
+        i:is -> map output (exec' bs (prog, tab, 0, 0, is, Right Nothing))
+                where 
+                    bs = readInts i 
+
+
+readInts :: String -> [Int]
+readInts = read
 
 -- exec :: ToyState -> [ToyState]
 -- exec st = st : rests
@@ -167,7 +174,7 @@ fetch (prog, _, _, pc, _, _) = case genericIndex prog pc of
 
 decode :: Instrustion -> (ToyState -> ToyState)
 decode (op, arg) (prog, tab, acc, pc, ins, _) = case op of
-    GET -> trace "Input number" $ case ins of { i : is -> (prog, tab, i, succ pc, is, Right Nothing) }
+    GET -> trace "Input number" $ case ins of { i : is -> (prog, tab, read i, succ pc, is, Right Nothing) }
     PRINT -> (prog, tab, acc, succ pc, ins, Right (Just acc))
     STOP -> trace "stop" (prog, tab, acc, -1, ins, Right Nothing)
     LOAD -> (prog, tab, getval prog tab arg, succ pc, ins, Right Nothing)

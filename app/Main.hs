@@ -12,7 +12,7 @@ main = do
     }
 
 drive :: (Inputs -> [Output]) -> IO ()
-drive r = interact (concat . map showOutput . r . map read' . lines )
+drive r = interact (concat . map showOutput . r . lines )
 
 showOutput :: Output -> String
 showOutput o = case o of
