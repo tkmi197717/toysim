@@ -114,12 +114,12 @@ exec' :: DebugInfo -> ToyState -> [ToyState]
 exec' bs st = st : rests
     where 
         rests = if isFinal st then [] 
-                else extend st ++ (exec' bs (step st))
+                else extend st
         extend st@(prog, tab, acc, pc, iis, _) 
             = if elem pc bs 
                 then (prog, tab, acc, pc, iis, disp st) : case iis of 
-                    i:is -> [(prog, tab, acc, pc, is, Right Nothing)]
-                else [] 
+                    i:is -> exec' bs (step (prog, tab, acc, pc, is, Right Nothing))
+                else exec' bs (step st)
 
 
 disp :: ToyState -> Either String (Maybe Int)
