@@ -8,7 +8,7 @@ import Data.List
 import Data.Maybe
 import Debug.Trace
 import Text.Printf
-
+--データ型
 data Op
     = NOP
     | GET 
@@ -33,7 +33,7 @@ readArg :: String -> Arg
 readArg a = if all isDigit a
     then Number (read a)
     else Label a
-
+--シンボルテーブル
 type Instrustion = (Op, Arg)
 
 type Program = [(Int,Instrustion)]
@@ -43,7 +43,7 @@ type SymTable = [(String, Int)]
 type DebugInfo = [BreakPoint] 
 
 type BreakPoint = Int
-
+--読み込み
 loadProg :: String -> (Program, SymTable)
 loadProg s = case mapAccumL psi (0, []) (lines s) of
     ((n, tab), prog) -> (prog, tab)
@@ -100,6 +100,7 @@ type Output = Either String (Maybe Int)
 -- inputs_ :: ToyState -> Inputs
 -- inputs_ (_, _, _, _, i, _) = i
 
+--ステップ実行
 output :: ToyState -> Output
 output (_, _, _, _, _, o) = o
 

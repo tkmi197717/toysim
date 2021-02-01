@@ -44,6 +44,12 @@ executables:
     dependencies:
     - toysim  
 
+  toyassembler:
+    main:                assembler.hs
+    source-dirs:         app
+    dependencies:
+    - toysim
+
 tests:
   toysim-test:
     main:                Spec.hs

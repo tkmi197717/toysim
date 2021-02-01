@@ -1,4 +1,4 @@
-module Main1 where
+module Main where
 
 import System.Environment
 import Toysim 
